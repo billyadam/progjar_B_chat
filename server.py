@@ -2,7 +2,7 @@
 import sys, socket, select
 
 SOCKET_LIST = []
-
+NAME = []
 def chat_server():
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -11,6 +11,7 @@ def chat_server():
     server_socket.listen(2)
  
     SOCKET_LIST.append(server_socket)
+    NAME.append("")
  
     while 1:
 
@@ -23,13 +24,76 @@ def chat_server():
                 SOCKET_LIST.append(sockfd)
                 print "Client (%s, %s) connected" % addr
                  
-                broadcast(server_socket, sockfd, "[%s:%s] entered our chatting room\n" % addr)
-             
+                NAME.append("")
+                
             else:
                 try:
                     data = sock.recv(1000)
                     if data:
-                        broadcast(server_socket, sock, "\r" + str(sock.getpeername()) + ": "+ data)  
+						temp = data.split()
+						
+						for i in range(len(SOCKET_LIST)):
+							
+							if SOCKET_LIST[i] == sock :
+								if NAME[i] == "" :
+									if temp[0] == "login":
+										if len(temp) >2:
+											sock.send("\rLogin command syntax invalid\n")
+										else:
+											NAME[i] = temp[1]
+											sock.send ("\rYou are Logged in as %s\n" % NAME[i])
+											broadcast(server_socket, sock, "\r[%s] logged in as %s\n" % (addr, NAME[i]))
+									elif temp[0] == "send" or temp[0] == "sendall" or temp[0] == "list" :
+										sock.send("\rPlease Log in First\n")
+									else:
+										sock.send("\rCommand unknown\n")
+								else: 
+									if temp[0] == "login":
+										sock.send("\rYou have been Logged In\n")
+									elif temp[0] == "send":
+										if len(temp)<3:
+											sock.send("\rSend command syntax invalid\n")
+										else:
+											pesan = ""
+											for i in range(2, len(temp)):
+												pesan += str(temp[i])
+												if i != len(temp):
+													pesan+=" "
+											for i in range(len(SOCKET_LIST)):
+												if SOCKET_LIST[i] == sock :
+													pengirim = str(NAME[i])
+													break
+											for i in range(len(SOCKET_LIST)):
+												if NAME[i] == temp[1]:
+													SOCKET_LIST[i].send("\r" +pengirim +": "+pesan+"\n")
+													break
+										
+												
+									elif temp[0] == "sendall":
+										if len(temp)<2:
+											sock.send("\rSendall command syntax invalid\n")
+										else:
+											pesan = ""
+											for i in range(1, len(temp)):
+												pesan += str(temp[i])
+												if i != len(temp):
+													pesan+=" "
+											for i in range(len(SOCKET_LIST)):
+												if SOCKET_LIST[i] == sock :
+													pengirim = str(NAME[i])
+													break
+											broadcast(server_socket, sock, "\r"+pengirim+": "+ pesan+"\n")
+										
+									elif temp[0] == "list" :
+										if len(temp)>1:
+											sock.send("\rList command syntax invalid\n")
+										else:
+											sock.send("\rList of logged in users:\n")
+											for i in range (len(SOCKET_LIST)):
+												if (NAME[i] != ""):
+													sock.send("\r- %s \n" % str(NAME[i]))
+									else:
+										sock.send("\rCommand unknown\n")
                     else:
                         if sock in SOCKET_LIST:
                             SOCKET_LIST.remove(sock)
@@ -43,14 +107,14 @@ def chat_server():
     server_socket.close()
     
 def broadcast (server_socket, sock, message):
-    for socket in SOCKET_LIST:
-        if socket != server_socket and socket != sock :
+    for i in range(len(SOCKET_LIST)):
+        if SOCKET_LIST[i] != server_socket and SOCKET_LIST[i] != sock and NAME[i]!="":
             try :
-                socket.send(message)
+                SOCKET_LIST[i].send(message)
             except :
-                socket.close()
-                if socket in SOCKET_LIST:
-                    SOCKET_LIST.remove(socket)
+                SOCKET_LIST[i].close()
+                if SOCKET_LIST[i] in SOCKET_LIST:
+                    SOCKET_LIST.remove(SOCKET_LIST[i])
  
 if __name__ == "__main__":
 

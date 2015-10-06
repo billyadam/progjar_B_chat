@@ -12,7 +12,7 @@ def chat_client():
         print 'Unable to connect'
         sys.exit()
      
-    print 'Connected to remote host. You can start sending messages'
+    print 'Connected to server'
     sys.stdout.write('[Me] '); sys.stdout.flush()
      
     while 1:
@@ -32,6 +32,7 @@ def chat_client():
             
             else :
                 msg = sys.stdin.readline()
+                
                 s.send(msg)
                 sys.stdout.write('[Me] '); sys.stdout.flush() 
 
