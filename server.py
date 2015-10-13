@@ -37,12 +37,15 @@ def chat_server():
 							if SOCKET_LIST[i] == sock :
 								if NAME[i] == "" :
 									if temp[0] == "login":
-										if len(temp) >2:
-											sock.send("\rLogin command syntax invalid\n")
+										if len(temp) >2 :
+											sock.send("\rLogin command invalid, Username can only have one word\n")
+										elif len(temp) == 1:
+											sock.send("\rLogin command invalid, please type username after typing Login\n")
 										else:
 											NAME[i] = temp[1]
 											sock.send ("\rYou are Logged in as %s\n" % NAME[i])
-											broadcast(server_socket, sock, "\r[%s] logged in as %s\n" % (addr, NAME[i]))
+											print "%s logged in as %s" % (addr, NAME[i])
+											broadcast(server_socket, sock, "\r%s logged in\n" %  NAME[i])
 									elif temp[0] == "send" or temp[0] == "sendall" or temp[0] == "list" :
 										sock.send("\rPlease Log in First\n")
 									else:
@@ -52,7 +55,7 @@ def chat_server():
 										sock.send("\rYou have been Logged In\n")
 									elif temp[0] == "send":
 										if len(temp)<3:
-											sock.send("\rSend command syntax invalid\n")
+											sock.send("\rSend command syntax invalid, please type send [destination user] [message]\n")
 										else:
 											pesan = ""
 											for i in range(2, len(temp)):
@@ -71,7 +74,7 @@ def chat_server():
 												
 									elif temp[0] == "sendall":
 										if len(temp)<2:
-											sock.send("\rSendall command syntax invalid\n")
+											sock.send("\rSendall command syntax invalid, type message after typing sendall\n")
 										else:
 											pesan = ""
 											for i in range(1, len(temp)):
@@ -86,7 +89,7 @@ def chat_server():
 										
 									elif temp[0] == "list" :
 										if len(temp)>1:
-											sock.send("\rList command syntax invalid\n")
+											sock.send("\rList command syntax invalid, type only list to see list of online users\n")
 										else:
 											sock.send("\rList of logged in users:\n")
 											for i in range (len(SOCKET_LIST)):
